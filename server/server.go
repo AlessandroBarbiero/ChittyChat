@@ -7,7 +7,8 @@ import (
 	"net"
 	t "time"
 
-	"github.com/AlessandroBarbiero/Dist-Sys-Assignment4/time"
+	// change to /chat
+	"github.com/AlessandroBarbiero/ChittyChat/time"
 
 	"google.golang.org/grpc"
 )

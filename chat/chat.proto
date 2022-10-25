@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package chat;
+option go_package = "https://github.com/AlessandroBarbiero/ChittyChat;chat";
+
+
+service Chat{
+    rpc Chat(stream RequestMsg) returns (stream ResponseMsg);
+}
+
+message RequestMsg {
+    int64 id = 1;
+    string message = 2;
+    map<int64, int64> vectorClock = 3; 
+}
+
+message ResponseMsg {
+    int64 id = 1;
+    string message = 2;
+    map<int64, int64> vectorClock = 3;
+}
+
