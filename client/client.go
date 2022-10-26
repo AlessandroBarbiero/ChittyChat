@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"os"
 
-	"github.com/AlessandroBarbiero/Dist-Sys-Assignment4/time"
+	"chat/chat"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"google.golang.org/grpc"
 )
@@ -26,7 +27,7 @@ func main() {
 	defer conn.Close()
 
 	//  Create new Client from generated gRPC code from proto
-	c := time.NewGetCurrentTimeClient(conn)
+	c := chat.NewChatClient(conn)
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -36,19 +37,19 @@ func main() {
 		if err != nil {
 			log.Fatalf("Cannot read from input")
 		}
-		SendGetTimeRequest(c)
+		SendChatRequest(c)
 		//t.Sleep(5 * t.Second)
 	}
 }
 
-func SendGetTimeRequest(c time.GetCurrentTimeClient) {
+func SendChatRequest(c chat.ChatClient) {
 	// Between the curly brackets are nothing, because the .proto file expects no input.
-	message := time.GetTimeRequest{}
+	message := chat.RequestMsg{}
 
-	response, err := c.GetTime(context.Background(), &message)
+	response, err := c.Chat(context.Background(), &message)
 	if err != nil {
 		log.Fatalf("Error when calling GetTime: %s", err)
 	}
 
-	fmt.Printf("Current time right now: %s\n", response.Reply)
+	fmt.Printf("Current time right now: %s\n", response)
 }

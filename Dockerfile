@@ -8,9 +8,9 @@ RUN export GO111MODULE=on
 COPY go.mod /build
 COPY go.sum /build/
 
-RUN cd /build/ && git clone https://github.com/AlessandroBarbiero/Dist-Sys-Assignment4
-RUN cd /build/Dist-Sys-Assignment4/server && go build ./...
+RUN cd /build/ && git clone https://github.com/AlessandroBarbiero/ChittyChat
+RUN cd /build/ChittyChat/server && go build ./...
 
 EXPOSE 9080
 
-ENTRYPOINT [ "/build/Dist-Sys-Assignment4/server/server" ]
+ENTRYPOINT [ "/build/ChittyChat/server/server" ]
