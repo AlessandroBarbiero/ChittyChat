@@ -13,6 +13,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var MAX_LENGTH = 128
+
 type Client struct {
 	id          int64
 	vectorClock map[int64]int64
@@ -61,8 +63,12 @@ func (c *Client) startClient(serverPort *int) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		input := scanner.Text()
-		c.sendMessage(stream, input)
-		log.Printf("Message sent:\"%s\"\n", input)
+		if len(input) > MAX_LENGTH {
+			log.Println("Invalid message, please keep length of message under 128 characters")
+		} else {
+			c.sendMessage(stream, input)
+			log.Printf("Message sent:\"%s\"\n", input)
+		}
 	}
 }
 
