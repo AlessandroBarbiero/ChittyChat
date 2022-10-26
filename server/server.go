@@ -66,12 +66,16 @@ func (s *Server) removeClient(id int64) {
 	}
 }
 
+// Broadcast message to every client connected to the server except the sender,
+// if the message cannot be sent to a client disconnect the client
 func (s *Server) broadcastMessage(msg *chat.ResponseMsg) {
 	for id, stream := range s.clients {
-		err := stream.Send(msg)
-		if err != nil {
-			log.Printf("Can't send message to client %d\nRemove it from active clients", id)
-			s.removeClient(id)
+		if id != msg.Id {
+			err := stream.Send(msg)
+			if err != nil {
+				log.Printf("Can't send message to client %d\nRemove it from active clients", id)
+				s.removeClient(id)
+			}
 		}
 	}
 	log.Printf("Message from client %d '%s' was broadcasted.\n", msg.Id, msg.Message)
@@ -98,12 +102,7 @@ func main() {
 	}
 
 	// Start the server
-	go startServer(server)
-
-	// Keep the server running until it is manually quit
-	for {
-
-	}
+	startServer(server)
 }
 
 func startServer(server *Server) {
@@ -138,6 +137,8 @@ func (s *Server) Chat(stream chat.Chat_ChatServer) error {
 		Message:     "Client " + strconv.Itoa(int(id)) + " joined the chat",
 		VectorClock: make(map[int64]int64),
 	}
+	msg.VectorClock[id] = 0
+
 	s.broadcastMessage(&msg)
 
 	for {
@@ -150,8 +151,8 @@ func (s *Server) Chat(stream chat.Chat_ChatServer) error {
 
 		if err != nil {
 			log.Printf("Server couldn't receive message from client %d.\nError message: %s\n", id, err)
-			// Try read again
-			continue
+			// Client disconnected
+			break
 		}
 
 		//send message to every other client connected
