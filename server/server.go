@@ -9,8 +9,7 @@ import (
 	"strconv"
 	t "time"
 
-	// change to /chat
-	"github.com/AlessandroBarbiero/ChittyChat/chat"
+	"chat/chat"
 
 	"google.golang.org/grpc"
 )
