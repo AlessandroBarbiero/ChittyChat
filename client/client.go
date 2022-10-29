@@ -14,6 +14,8 @@ import (
 )
 
 var MAX_LENGTH = 128
+var PORT = 8080
+var IP = "localhost"
 
 type Client struct {
 	id          int64
@@ -29,7 +31,7 @@ func main() {
 	// flag.Parse()
 
 	// Hardcoded port
-	port_value := 8080
+	port_value := PORT
 	serverPort := &port_value
 
 	client := &Client{
@@ -135,7 +137,7 @@ func (c *Client) sendMessage(stream chat.Chat_ChatClient, content string) {
 func getServerConnection(serverPort *int) chat.ChatClient {
 
 	// Run server and client on local host if you don't write ip address
-	conn, err := grpc.Dial(":"+strconv.Itoa(*serverPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(IP + ":"+strconv.Itoa(*serverPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("could not dial")
 	}

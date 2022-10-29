@@ -68,9 +68,10 @@ func (s *Server) removeClient(id int64) {
 
 // Broadcast message to every client connected to the server except the sender,
 // if the message cannot be sent to a client disconnect the client
-func (s *Server) broadcastMessage(msg *chat.ResponseMsg) {
+func (s *Server) broadcastMessage(msg *chat.ResponseMsg, toSender ...bool) {
 	for id, stream := range s.clients {
-		if id != msg.Id {
+		// if id is different from sender id or the message is suposed to be send to sender
+		if id != msg.Id || len(toSender) > 0 {
 			err := stream.Send(msg)
 			if err != nil {
 				log.Printf("Can't send message to client %d\nRemove it from active clients", id)
@@ -139,7 +140,7 @@ func (s *Server) Chat(stream chat.Chat_ChatServer) error {
 	}
 	msg.VectorClock[id] = 0
 
-	s.broadcastMessage(&msg)
+	s.broadcastMessage(&msg, true)
 
 	for {
 		//wait for msg from client
