@@ -43,15 +43,20 @@ func main() {
 	client.startClient(serverPort)
 }
 
+// get connection to server
+// start receiving thread 
+// wait for user input and send the messages to server
 func (c *Client) startClient(serverPort *int) {
 	serverConnection := getServerConnection(serverPort)
 
+	// get stream to server
 	ctx := context.Background()
 	stream, err := serverConnection.Chat(ctx)
 	if err != nil {
 		log.Fatalln("Client couldn't connect")
 	}
 
+	// wait for server to give me an id
 	msg, err := stream.Recv()
 	if err != nil {
 		log.Fatalln("Couldn't get id from server")
@@ -60,8 +65,10 @@ func (c *Client) startClient(serverPort *int) {
 	c.id = msg.Id
 	c.vectorClock[c.id] = 0
 
+	// start receiving thread for all messages
 	go c.receiveTHD(stream)
 
+	// wait for user input and send messages to server
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		input := scanner.Text()
@@ -74,6 +81,7 @@ func (c *Client) startClient(serverPort *int) {
 	}
 }
 
+// waiting for messages in stream from server and prints them out
 func (c *Client) receiveTHD(stream chat.Chat_ChatClient) {
 	for {
 		msg, err := stream.Recv()
@@ -82,12 +90,14 @@ func (c *Client) receiveTHD(stream chat.Chat_ChatClient) {
 		}
 
 		log.Printf("Received message from %d: %s send at %v", msg.Id, msg.Message, msg.VectorClock)
+		// update the clock
 		c.mergeVectorClocks(msg.VectorClock)
 		c.updateMyTime()
 		log.Printf("Current node time is %v", c.vectorClock)
 	}
 }
 
+// +1 in vector clock for this node
 func (c *Client) updateMyTime() map[int64]int64 {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -104,6 +114,7 @@ func Max(x, y int64) int64 {
 	return x
 }
 
+// merging vector clocks, like it is defined in algorithm
 func (c *Client) mergeVectorClocks(clock map[int64]int64) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -134,6 +145,7 @@ func (c *Client) sendMessage(stream chat.Chat_ChatClient, content string) {
 	}
 }
 
+// dial server
 func getServerConnection(serverPort *int) chat.ChatClient {
 
 	// Run server and client on local host if you don't write ip address
