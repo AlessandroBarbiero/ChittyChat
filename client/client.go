@@ -62,6 +62,15 @@ func (c *Client) startClient(serverPort *int) {
 		log.Fatalln("Couldn't get id from server")
 	}
 
+	f, err := os.OpenFile("client" + strconv.Itoa(int(msg.Id)) + ".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+			log.Fatal(err)
+	}
+
+	defer f.Close()
+
+	log.SetOutput(f)
+
 	c.id = msg.Id
 	c.vectorClock[c.id] = 0
 

@@ -4,6 +4,7 @@ import (
 	"chat/chat"
 	"io"
 	"log"
+	"os"
 	"net"
 	"strconv"
 	"sync"
@@ -116,6 +117,16 @@ func startServer(server *Server) {
 	if err != nil {
 		log.Fatalf("Could not create the server %v", err)
 	}
+
+	f, err := os.OpenFile("server.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+			log.Fatal(err)
+	}
+
+	defer f.Close()
+
+	log.SetOutput(f)
+
 	log.Printf("Started server at port: %d\n", server.port)
 
 	// Register the grpc server and serve its listener
@@ -138,7 +149,8 @@ func (s *Server) Chat(stream chat.Chat_ChatServer) error {
 		Message:     "Client " + strconv.Itoa(int(id)) + " joined the chat",
 		VectorClock: make(map[int64]int64),
 	}
-	msg.VectorClock[id] = 0
+	// 1 or 0?
+	msg.VectorClock[id] = 1
 
 	s.broadcastMessage(&msg, true)
 
