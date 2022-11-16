@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var MAX_LENGTH = 128
+var MaxLength = 128
 var PORT = 8080
 var IP = "localhost"
 
@@ -31,8 +31,8 @@ func main() {
 	// flag.Parse()
 
 	// Hardcoded port
-	port_value := PORT
-	serverPort := &port_value
+	portValue := PORT
+	serverPort := &portValue
 
 	client := &Client{
 		id:          1,
@@ -43,28 +43,29 @@ func main() {
 	client.startClient(serverPort)
 }
 
-// get connection to server
-// start receiving thread 
-// wait for user input and send the messages to server
+// Get connection to server
+// Start receiving thread
+// Wait for user input and send the messages to server
 func (c *Client) startClient(serverPort *int) {
 	serverConnection := getServerConnection(serverPort)
 
-	// get stream to server
 	ctx := context.Background()
+	// Request the server to join the chat
 	stream, err := serverConnection.Chat(ctx)
 	if err != nil {
 		log.Fatalln("Client couldn't connect")
 	}
 
-	// wait for server to give me an id
+	// Receive the first message from the server to know my id
 	msg, err := stream.Recv()
 	if err != nil {
 		log.Fatalln("Couldn't get id from server")
 	}
 
-	f, err := os.OpenFile("client" + strconv.Itoa(int(msg.Id)) + ".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	// Set the log file with the right client id
+	f, err := os.OpenFile("client"+strconv.Itoa(int(msg.Id))+".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal("Error trying to open/create the log file")
 	}
 
 	defer f.Close()
@@ -75,13 +76,13 @@ func (c *Client) startClient(serverPort *int) {
 	c.vectorClock[c.id] = 0
 
 	// start receiving thread for all messages
-	go c.receiveTHD(stream)
+	go c.receiveMessages(stream)
 
-	// wait for user input and send messages to server
+	// Wait for user input to send messages, if the message is longer than MaxLength it is not sent
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		input := scanner.Text()
-		if len(input) > MAX_LENGTH {
+		if len(input) > MaxLength {
 			log.Println("Invalid message, please keep length of message under 128 characters")
 		} else {
 			c.sendMessage(stream, input)
@@ -90,15 +91,23 @@ func (c *Client) startClient(serverPort *int) {
 	}
 }
 
-// waiting for messages in stream from server and prints them out
-func (c *Client) receiveTHD(stream chat.Chat_ChatClient) {
+// Receive the message from the stream,
+// Print it with the vectorClock sent,
+// Update my vectorClock based on the received one
+// Increase my own clock and print it
+func (c *Client) receiveMessages(stream chat.Chat_ChatClient) {
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
 			log.Fatal("Disrupted connection")
 		}
 
-		log.Printf("Received message from %d: %s send at %v", msg.Id, msg.Message, msg.VectorClock)
+		if msg.Id == 0 {
+			log.Printf("Received message from server: \"%s\" sent at %v", msg.Message, msg.VectorClock)
+		} else {
+			log.Printf("Received message from %d: \"%s\" sent at %v", msg.Id, msg.Message, msg.VectorClock)
+		}
+
 		// update the clock
 		c.mergeVectorClocks(msg.VectorClock)
 		c.updateMyTime()
@@ -114,13 +123,6 @@ func (c *Client) updateMyTime() map[int64]int64 {
 	c.vectorClock[c.id]++
 
 	return c.vectorClock
-}
-
-func Max(x, y int64) int64 {
-	if x < y {
-		return y
-	}
-	return x
 }
 
 // merging vector clocks, like it is defined in algorithm
@@ -143,11 +145,13 @@ func (c *Client) sendMessage(stream chat.Chat_ChatClient, content string) {
 
 	clock := c.updateMyTime()
 
-	err := stream.SendMsg(&chat.RequestMsg{
-		Id:          int64(c.id),
+	msg := chat.RequestMsg{
+		Id:          c.id,
 		Message:     content,
 		VectorClock: clock,
-	})
+	}
+
+	err := stream.SendMsg(&msg)
 
 	if err != nil {
 		log.Printf("Couldn't send message")
@@ -158,11 +162,18 @@ func (c *Client) sendMessage(stream chat.Chat_ChatClient, content string) {
 func getServerConnection(serverPort *int) chat.ChatClient {
 
 	// Run server and client on local host if you don't write ip address
-	conn, err := grpc.Dial(IP + ":"+strconv.Itoa(*serverPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(IP+":"+strconv.Itoa(*serverPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("could not dial")
 	}
 	log.Printf("Dialed\n")
 
 	return chat.NewChatClient(conn)
+}
+
+func Max(x, y int64) int64 {
+	if x < y {
+		return y
+	}
+	return x
 }

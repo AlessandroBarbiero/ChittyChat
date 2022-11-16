@@ -1,0 +1,9 @@
+2022/11/16 16:20:21 Received message from server: "Client 1 joined the chat" sent at map[1:0]
+2022/11/16 16:20:21 Current node time is map[1:1]
+2022/11/16 16:20:27 Received message from server: "Client 2 joined the chat" sent at map[2:0]
+2022/11/16 16:20:27 Current node time is map[1:2 2:0]
+2022/11/16 16:20:35 Received message from 2: "AAA" sent at map[2:2]
+2022/11/16 16:20:35 Current node time is map[1:3 2:2]
+2022/11/16 16:21:38 Received message from server: "Client 3 joined the chat" sent at map[3:0]
+2022/11/16 16:21:38 Current node time is map[1:4 2:2 3:0]
+2022/11/16 16:22:11 Message sent:"BBB"

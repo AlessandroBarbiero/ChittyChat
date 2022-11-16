@@ -1,0 +1,12 @@
+2022/11/16 16:20:12 Started server at port: 8080
+2022/11/16 16:20:21 Received Join Request
+2022/11/16 16:20:21 Client 1 has joined the chat
+2022/11/16 16:20:21 Message from server was broadcasted.
+2022/11/16 16:20:27 Received Join Request
+2022/11/16 16:20:27 Client 2 has joined the chat
+2022/11/16 16:20:27 Message from server was broadcasted.
+2022/11/16 16:20:35 Message from client 2 was broadcasted.
+2022/11/16 16:21:38 Received Join Request
+2022/11/16 16:21:38 Client 3 has joined the chat
+2022/11/16 16:21:38 Message from server was broadcasted.
+2022/11/16 16:22:11 Message from client 1 was broadcasted.
